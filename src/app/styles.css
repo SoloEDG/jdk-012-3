@@ -1126,3 +1126,288 @@ textarea {
     margin: 3px 0;
   }
 }
+
+/* ===== 展览交换 ===== */
+.boot-screen {
+  height: 100vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 12px;
+  color: #8b8d81;
+}
+.boot-screen h1 {
+  font-family: "Noto Serif SC", serif;
+  letter-spacing: 12px;
+  color: #dddcd3;
+  margin: 0;
+}
+.exchange-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.exchange-panel h2 {
+  margin: 0;
+  font-family: "Noto Serif SC", serif;
+  font-size: 22px;
+}
+.exchange-hint {
+  color: #8b8d81;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+}
+.exchange-section {
+  border: 1px solid #343831;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exchange-section .section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.exchange-section .section-title small {
+  margin-left: auto;
+  color: #77796d;
+  font-size: 11px;
+}
+.current-exhibition {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.current-exhibition small,
+.archived-row small,
+.migration-row small {
+  color: #8b8d81;
+}
+.capacity-meter {
+  height: 12px;
+  border-radius: 6px;
+  background: #262a24;
+  overflow: hidden;
+  display: flex;
+}
+.capacity-meter .seg {
+  height: 100%;
+}
+.capacity-meter .pinned {
+  background: #c5a66d;
+}
+.capacity-meter .staged {
+  background: #7fa3c7;
+}
+.capacity-meter .archived {
+  background: #6a6f63;
+}
+.capacity-legend {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #8b8d81;
+}
+.capacity-legend .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+.capacity-legend .pinned {
+  background: #c5a66d;
+}
+.capacity-legend .staged {
+  background: #7fa3c7;
+}
+.capacity-legend .archived {
+  background: #6a6f63;
+}
+.budget-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8b8d81;
+}
+.budget-row input {
+  width: 72px;
+  background: #262a24;
+  border: 1px solid #343831;
+  border-radius: 6px;
+  color: #dddcd3;
+  padding: 5px 8px;
+}
+.import-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.import-progress progress {
+  width: 100%;
+  height: 8px;
+}
+.import-error {
+  color: #d98c8c;
+  font-size: 12px;
+  margin: 0;
+}
+.sample-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sample-buttons .text-button {
+  border: 1px solid #343831;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11px;
+}
+.archived-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.archived-row > span {
+  display: flex;
+  flex-direction: column;
+}
+.event-log {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+.event-row {
+  display: flex;
+  gap: 8px;
+  color: #a9ab9f;
+}
+.event-row small {
+  color: #666a5e;
+  flex-shrink: 0;
+}
+.event-row.kind-error span,
+.event-row.kind-integrity span {
+  color: #d98c8c;
+}
+.event-row.kind-commit span,
+.event-row.kind-migration span {
+  color: #a8c69f;
+}
+button.full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ===== 导入预览 ===== */
+.import-preview {
+  max-width: 640px;
+  width: min(640px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+.preview-source {
+  color: #8b8d81;
+  font-size: 12px;
+  margin: 0 0 4px;
+}
+.preview-section {
+  border-top: 1px solid #343831;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.preview-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+.preview-section ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #b9bbae;
+}
+.preview-section li.error,
+.import-preview .error {
+  color: #d98c8c;
+}
+.preview-section li.warn,
+.import-preview .warn {
+  color: #d8b76d;
+}
+.preview-section .ok {
+  color: #a8c69f;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin: 0;
+}
+.issue-list {
+  max-height: 140px;
+  overflow-y: auto;
+}
+.issue-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preview-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.art-preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.art-preview img {
+  width: 100%;
+  display: block;
+  aspect-ratio: 7 / 8.5;
+  object-fit: cover;
+}
+.art-preview span {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.archived-section {
+  border-top: 1px dashed #343831;
+  padding-top: 10px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.archived-section .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.saved-card.archived {
+  opacity: 0.75;
+}
+.archived-title {
+  cursor: default;
+}

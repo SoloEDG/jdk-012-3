@@ -1,5 +1,6 @@
-import { artworks } from "../../../shared/catalog";
 import { ArrowUpRight } from "lucide-react";
+import { useServices } from "../../exhibition/ServicesProvider";
+
 export function ArtworkList({
   active,
   onSelect,
@@ -7,15 +8,16 @@ export function ArtworkList({
   active: string | null;
   onSelect: (id: string) => void;
 }) {
+  const { runtime } = useServices();
   return (
     <div className="artwork-list">
-      {artworks.map((a, i) => (
+      {runtime.artworks.map((a, i) => (
         <button
           className={active === a.id ? "art-row active" : "art-row"}
           onClick={() => onSelect(a.id)}
           key={a.id}
         >
-          <span className="art-number">0{i + 1}</span>
+          <span className="art-number">{String(i + 1).padStart(2, "0")}</span>
           <span>
             <strong>{a.title}</strong>
             <small>

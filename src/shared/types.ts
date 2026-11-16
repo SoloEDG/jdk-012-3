@@ -19,7 +19,11 @@ export type Route = {
   subtitle: string;
   stops: string[];
 };
-export type Visit = { id: string; seconds: number; at: number };
+/**
+ * 参观记录与收藏以“作品身份键”（图片内容哈希）为键 —— 与展览内 id 无关。
+ * 这样跨展览迁移只依赖内容身份规则，id 在不同包中即使撞车也不会混淆。
+ */
+export type Visit = { key: string; seconds: number; at: number };
 export type GalleryDocument = {
   favorites: string[];
   visits: Visit[];

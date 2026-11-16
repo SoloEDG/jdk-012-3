@@ -1,7 +1,13 @@
 import * as THREE from "three";
-import { artworks } from "../../../shared/catalog";
-import { artTexture } from "./artTexture";
-export function buildScene() {
+import type { RuntimeExhibition } from "../../exhibition/runtime";
+
+/**
+ * 由运行时展览构建三维场景：展厅尺寸、作品位置/尺寸/画面全部来自
+ * 当前展览数据。展览切换时整体 dispose 并重建 —— 场景内不存在
+ * 跨展览共享的资源引用。
+ */
+export function buildScene(runtime: RuntimeExhibition) {
+  const { width, depth } = runtime.space;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#d7d5ce");
   scene.fog = new THREE.Fog("#d7d5ce", 14, 32);
@@ -26,18 +32,19 @@ export function buildScene() {
     scene.add(mesh);
     return mesh;
   };
-  box(12, 0.15, 16, 0, -0.08, 0, "#b4b0a7");
-  box(0.3, 5.8, 16, -6, 2.9, 0, "#e2ded4");
-  box(0.3, 5.8, 16, 6, 2.9, 0, "#e2ded4");
-  box(12, 5.8, 0.3, 0, 2.9, -8, "#d7d5cb");
-  box(12, 5.8, 0.3, 0, 2.9, 8, "#e2ded4");
-  for (let z = -8; z <= 8; z += 2) {
-    box(12, 0.012, 0.018, 0, 0.01, z, "#9d9b93");
+  box(width, 0.15, depth, 0, -0.08, 0, "#b4b0a7");
+  box(0.3, 5.8, depth, -width / 2, 2.9, 0, "#e2ded4");
+  box(0.3, 5.8, depth, width / 2, 2.9, 0, "#e2ded4");
+  box(width, 5.8, 0.3, 0, 2.9, -depth / 2, "#d7d5cb");
+  box(width, 5.8, 0.3, 0, 2.9, depth / 2, "#e2ded4");
+  for (let z = -depth / 2; z <= depth / 2; z += 2) {
+    box(width, 0.012, 0.018, 0, 0.01, z, "#9d9b93");
   }
-  for (let x = -6; x <= 6; x += 2) box(0.018, 0.012, 16, x, 0.01, 0, "#9d9b93");
+  for (let x = -width / 2; x <= width / 2; x += 2)
+    box(0.018, 0.012, depth, x, 0.01, 0, "#9d9b93");
   for (let z = -5; z <= 5; z += 5) {
-    box(10, 0.16, 0.2, 0, 5.1, z, "#b7b4aa");
-    box(7, 0.03, 0.12, 0, 5, z, "#fff6d9");
+    box(width - 2, 0.16, 0.2, 0, 5.1, z, "#b7b4aa");
+    box(width - 5, 0.03, 0.12, 0, 5, z, "#fff6d9");
   }
   box(1.8, 0.7, 1.5, 0, 0.35, -0.3, "#d3cfc4");
   const sculpture = new THREE.Mesh(
@@ -51,18 +58,20 @@ export function buildScene() {
   sculpture.position.set(0, 1.7, -0.3);
   scene.add(sculpture);
   const frames: THREE.Mesh[] = [];
-  for (const a of artworks) {
+  for (const a of runtime.artworks) {
     const group = new THREE.Group();
     group.position.set(a.position.x, 2.45, a.position.z);
     group.rotation.y = a.facing;
     const frame = new THREE.Mesh(
-      new THREE.BoxGeometry(2.3, 2.9, 0.12),
+      new THREE.BoxGeometry(a.size.w + 0.17, a.size.h + 0.17, 0.12),
       new THREE.MeshStandardMaterial({ color: "#423e35" }),
     );
     group.add(frame);
+    const texture = new THREE.CanvasTexture(a.image);
+    texture.colorSpace = THREE.SRGBColorSpace;
     const image = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.13, 2.73),
-      new THREE.MeshBasicMaterial({ map: artTexture(a) }),
+      new THREE.PlaneGeometry(a.size.w, a.size.h),
+      new THREE.MeshBasicMaterial({ map: texture }),
     );
     image.position.z = 0.07;
     image.userData.artworkId = a.id;
@@ -72,12 +81,13 @@ export function buildScene() {
       new THREE.PlaneGeometry(0.6, 0.13),
       new THREE.MeshBasicMaterial({ color: "#f2eee3" }),
     );
-    plaque.position.set(0.7, -1.66, 0.08);
+    plaque.position.set(a.size.w / 2 - 0.45, -a.size.h / 2 - 0.21, 0.08);
     group.add(plaque);
     scene.add(group);
   }
   return { scene, frames, sculpture };
 }
+
 export function disposeScene(scene: THREE.Scene) {
   scene.traverse((o) => {
     if (o instanceof THREE.Mesh) {

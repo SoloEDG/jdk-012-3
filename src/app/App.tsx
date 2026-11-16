@@ -15,15 +15,25 @@ import { ArtworkList, ArtworkDetail } from "../features/catalog";
 import { TourPanel } from "../features/tours";
 import { AudioPlayer } from "../features/narration";
 import { CollectionPanel } from "../features/collection";
-import { artworks, artworkById } from "../shared/catalog";
+import { ExchangePanel, ImportPreview, useExchange } from "../features/exchange";
+import { useServices } from "../features/exhibition/ServicesProvider";
 import { useGallery } from "./useGallery";
+
 export default function App() {
+  const { runtime } = useServices();
   const g = useGallery();
+  const x = useExchange();
   const [tab, setTab] = useState("explore");
   const [mapOpen, setMapOpen] = useState(false);
   const [help, setHelp] = useState(false);
   const [side, setSide] = useState("works");
-  const a = artworkById(g.catalog.active);
+  const a = runtime.artworkById(g.catalog.active);
+  const artists = new Set(runtime.artworks.map((w) => w.artist)).size;
+  const totalMinutes = Math.max(
+    1,
+    Math.round(runtime.artworks.reduce((n, w) => n + w.duration, 0) / 60),
+  );
+  const firstRoute = runtime.routes[0];
   return (
     <div className="app">
       <header>
@@ -55,6 +65,12 @@ export default function App() {
               {g.collection.document.favorites.length}
             </span>
           </button>
+          <button
+            className={tab === "exchange" ? "selected" : ""}
+            onClick={() => setTab("exchange")}
+          >
+            展览交换
+          </button>
         </nav>
         <div className="header-meta">
           <span className="live-dot" />
@@ -72,19 +88,15 @@ export default function App() {
         <aside className="left-sidebar">
           <div className="exhibition-intro">
             <div className="eyebrow">
-              CURRENT EXHIBITION <span>展览 001</span>
+              CURRENT EXHIBITION <span>{runtime.id.slice(0, 18)}</span>
             </div>
-            <h1>万物之间</h1>
-            <p className="english-title">BETWEEN ALL THINGS</p>
-            <p className="intro-text">
-              当自然、空间与想象相遇
-              <br />
-              一场不受边界限制的艺术漫游。
-            </p>
+            <h1>{runtime.title}</h1>
+            <p className="english-title">{runtime.en}</p>
+            <p className="intro-text">{runtime.intro}</p>
             <div className="exhibition-meta">
-              <span>6 件作品</span>
-              <span>6 位艺术家</span>
-              <span>约 12 分钟</span>
+              <span>{runtime.artworks.length} 件作品</span>
+              <span>{artists} 位艺术家</span>
+              <span>约 {totalMinutes} 分钟</span>
             </div>
           </div>
           <div className="sidebar-tabs">
@@ -92,7 +104,7 @@ export default function App() {
               className={side === "works" ? "active" : ""}
               onClick={() => setSide("works")}
             >
-              展出作品 <small>06</small>
+              展出作品 <small>{String(runtime.artworks.length).padStart(2, "0")}</small>
             </button>
             <button
               className={side === "map" ? "active" : ""}
@@ -164,7 +176,7 @@ export default function App() {
             <div className="center-cross">+</div>
             <div className="scene-location">
               <MapPin size={15} />
-              {g.catalog.nearby ? a?.title : "万物之间 · 主展厅"}
+              {g.catalog.nearby ? a?.title : `${runtime.title} · 主展厅`}
               <small>
                 {g.catalog.nearby
                   ? "靠近作品 · 可收听讲解"
@@ -217,17 +229,19 @@ export default function App() {
               <h3>不止于观看，更在于感受。</h3>
               <p>走近一件作品，听一段故事。让艺术与此刻的你，产生连接。</p>
             </div>
-            <button
-              onClick={() => {
-                g.tour.start("nature");
-                setTab("journeys");
-              }}
-            >
-              开启主题之旅 <ArrowUpRight size={19} />
-            </button>
+            {firstRoute && (
+              <button
+                onClick={() => {
+                  g.tour.start(firstRoute.id);
+                  setTab("journeys");
+                }}
+              >
+                开启主题之旅 <ArrowUpRight size={19} />
+              </button>
+            )}
           </div>
           <div className="art-tags">
-            {artworks.slice(0, 3).map((art, i) => (
+            {runtime.artworks.slice(0, 3).map((art, i) => (
               <button key={art.id} onClick={() => g.go(art.id)}>
                 <span style={{ background: art.color }} />0{i + 1} · {art.title}
                 <ArrowUpRight size={14} />
@@ -241,7 +255,8 @@ export default function App() {
               document={g.collection.document}
               onSelect={g.go}
               onNote={g.collection.note}
-              onToggle={g.collection.toggle}
+              onNoteByKey={g.collection.noteByKey}
+              onToggleByKey={g.collection.toggleByKey}
             />
           ) : tab === "journeys" ? (
             <>
@@ -259,12 +274,12 @@ export default function App() {
                 onNext={g.nextTour}
               />
             </>
+          ) : tab === "exchange" ? (
+            <ExchangePanel x={x} />
           ) : (
             <ArtworkDetail
               id={g.catalog.active}
-              saved={g.collection.document.favorites.includes(
-                g.catalog.active || "",
-              )}
+              saved={g.collection.isFavorite(g.catalog.active)}
               onFavorite={() => {
                 if (g.catalog.active) g.collection.toggle(g.catalog.active);
               }}
@@ -300,6 +315,15 @@ export default function App() {
         onSeek={g.narration.seek}
         onRate={g.narration.rate}
       />
+      {(x.importState.phase === "preview" ||
+        (x.importState.phase === "failed" && x.importState.report)) && (
+        <ImportPreview
+          state={x.importState}
+          onConfirm={() => void x.confirm()}
+          onCancel={() => void x.cancel()}
+          onClose={() => x.reset()}
+        />
+      )}
       {(mapOpen || help) && (
         <div
           className="modal-backdrop"
@@ -337,7 +361,8 @@ export default function App() {
                   主题导览会带你依次前往作品并开始讲解。收藏喜欢的作品，在“我的收藏”写下感想并下载参观回顾。
                 </p>
                 <p>
-                  讲解由设备的中文语音合成播放；没有中文语音时仍可阅读同步字幕。
+                  在“展览交换”中可以导入其他展览的策展包：导入前会预览容量、
+                  缺失资源、路线引用与空间冲突；确认切换前，当前展览始终可以完整参观。
                 </p>
               </>
             ) : (

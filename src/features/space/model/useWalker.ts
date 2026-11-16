@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import type { Point } from "../../../shared/types";
-import { approach, constrain } from "../lib/motion";
-export function useWalker(onPosition: (p: Point) => void) {
+import { approach, makeConstrain, type Space } from "../lib/motion";
+
+export function useWalker(
+  space: Space,
+  onPosition: (p: Point, walking: boolean) => void,
+) {
   const [position, setPosition] = useState<Point>({ x: 3, z: 6.5 });
   const positionRef = useRef(position);
   const target = useRef<Point | null>(null);
@@ -9,6 +13,8 @@ export function useWalker(onPosition: (p: Point) => void) {
   const yaw = useRef(0);
   const callback = useRef(onPosition);
   callback.current = onPosition;
+  const constrain = useRef(makeConstrain(space));
+  constrain.current = makeConstrain(space);
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest("input,textarea,select")) return;
@@ -41,7 +47,7 @@ export function useWalker(onPosition: (p: Point) => void) {
       last = now;
       let p = positionRef.current;
       const k = keys.current;
-      if (target.current) p = approach(p, target.current, dt);
+      if (target.current) p = approach(p, target.current, dt, constrain.current);
       else {
         const f =
           Number(k.has("w") || k.has("arrowup")) -
@@ -50,7 +56,7 @@ export function useWalker(onPosition: (p: Point) => void) {
           Number(k.has("d") || k.has("arrowright")) -
           Number(k.has("a") || k.has("arrowleft"));
         const length = Math.hypot(f, s) || 1;
-        p = constrain({
+        p = constrain.current({
           x:
             p.x +
             ((s * Math.cos(yaw.current) - f * Math.sin(yaw.current)) *
@@ -71,7 +77,7 @@ export function useWalker(onPosition: (p: Point) => void) {
       ) {
         positionRef.current = p;
         setPosition(p);
-        callback.current(p);
+        callback.current(p, target.current !== null);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -93,5 +99,6 @@ export function useWalker(onPosition: (p: Point) => void) {
     stop: () => {
       target.current = null;
     },
+    isWalking: () => target.current !== null,
   };
 }

@@ -1,7 +1,8 @@
 import { Play, Pause, Headphones } from "lucide-react";
 import type { AudioState } from "../../../shared/types";
-import { artworkById } from "../../../shared/catalog";
+import { useServices } from "../../exhibition/ServicesProvider";
 import { formatTime } from "../lib/timeline";
+
 export function AudioPlayer({
   state,
   caption,
@@ -17,7 +18,9 @@ export function AudioPlayer({
   onSeek: (n: number) => void;
   onRate: (n: number) => void;
 }) {
-  const a = artworkById(state.artworkId);
+  const { runtime } = useServices();
+  const a = runtime.artworkById(state.artworkId);
+  const playable = a && a.hasNarration;
   return (
     <div className="audio-player">
       <div className="audio-icon">
@@ -31,7 +34,7 @@ export function AudioPlayer({
         aria-label={state.playing ? "暂停讲解" : "播放讲解"}
         className="play-button"
         onClick={onToggle}
-        disabled={!a}
+        disabled={!playable}
       >
         {state.playing ? <Pause size={17} /> : <Play size={17} />}
       </button>
@@ -58,7 +61,9 @@ export function AudioPlayer({
       <div className="caption">
         {!supported
           ? "设备不支持语音，请阅读字幕"
-          : caption || "选择一件作品，听见它背后的故事"}
+          : a && !a.hasNarration
+            ? "该作品的讲解资源不可用"
+            : caption || "选择一件作品，听见它背后的故事"}
       </div>
     </div>
   );

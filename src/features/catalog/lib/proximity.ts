@@ -1,6 +1,9 @@
-import { artworks } from "../../../shared/catalog";
 import type { Point } from "../../../shared/types";
-export function nearbyArtwork(p: Point): string | null {
+
+export function nearbyArtwork(
+  p: Point,
+  artworks: { id: string; position: Point }[],
+): string | null {
   let best: string | null = null;
   let d = 3.1;
   for (const a of artworks) {

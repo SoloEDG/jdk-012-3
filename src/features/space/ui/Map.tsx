@@ -1,5 +1,6 @@
 import type { Point } from "../../../shared/types";
-import { artworks } from "../../../shared/catalog";
+import { useServices } from "../../exhibition/ServicesProvider";
+
 export function Map({
   position,
   active,
@@ -11,16 +12,27 @@ export function Map({
   onSelect: (id: string) => void;
   large?: boolean;
 }) {
+  const { runtime } = useServices();
+  const { width, depth } = runtime.space;
+  const scale = 10;
+  const roomX = 80 - (width / 2) * scale;
+  const roomY = 90 - (depth / 2) * scale;
   return (
     <svg
       className={large ? "map large" : "map"}
       viewBox="0 0 160 190"
       aria-label="展馆平面导航"
     >
-      <rect x="12" y="10" width="136" height="165" rx="2" fill="#e6e2d7" />
-      <path d="M12 65H148M12 120H148M57 10V175M103 10V175" stroke="#d4d0c5" />
+      <rect
+        x={roomX}
+        y={roomY}
+        width={width * scale}
+        height={depth * scale}
+        rx="2"
+        fill="#e6e2d7"
+      />
       <rect x="67" y="88" width="26" height="20" fill="#b8ad94" />
-      {artworks.map((a, i) => (
+      {runtime.artworks.map((a, i) => (
         <g
           key={a.id}
           onClick={() => onSelect(a.id)}
@@ -32,14 +44,14 @@ export function Map({
           }}
         >
           <circle
-            cx={80 + a.position.x * 10}
-            cy={90 + a.position.z * 10}
+            cx={80 + a.position.x * scale}
+            cy={90 + a.position.z * scale}
             r={active === a.id ? 9 : 7}
             fill={active === a.id ? "#c5a66d" : "#797c72"}
           />
           <text
-            x={80 + a.position.x * 10}
-            y={93 + a.position.z * 10}
+            x={80 + a.position.x * scale}
+            y={93 + a.position.z * scale}
             textAnchor="middle"
             fill="white"
             fontSize="8"
@@ -50,8 +62,8 @@ export function Map({
       ))}
       <circle
         data-testid="map-position"
-        cx={80 + position.x * 10}
-        cy={90 + position.z * 10}
+        cx={80 + position.x * scale}
+        cy={90 + position.z * scale}
         r="5"
         fill="#282c26"
         stroke="white"

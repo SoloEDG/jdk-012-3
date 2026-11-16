@@ -1,7 +1,8 @@
 import { Route, ArrowRight, Pause, Play, X } from "lucide-react";
-import { routes, artworkById } from "../../../shared/catalog";
 import type { TourState } from "../../../shared/types";
+import { useServices } from "../../exhibition/ServicesProvider";
 import { tourProgress, tourRoute } from "../lib/routeProgress";
+
 export function TourPanel({
   state,
   onStart,
@@ -17,7 +18,19 @@ export function TourPanel({
   onStop: () => void;
   onNext: () => void;
 }) {
-  const current = tourRoute(state);
+  const { runtime } = useServices();
+  const routes = runtime.routes;
+  const current = tourRoute(state, routes);
+  const minutesOf = (stops: string[]) =>
+    Math.max(
+      1,
+      Math.round(
+        stops.reduce(
+          (n, id) => n + (runtime.artworkById(id)?.duration ?? 30),
+          0,
+        ) / 60,
+      ),
+    );
   return (
     <section className="tour-panel">
       <div className="section-title">
@@ -34,11 +47,11 @@ export function TourPanel({
               : `${state.step + 1} / ${current.stops.length}`}
           </span>
           <h3>{current.name}</h3>
-          <progress value={tourProgress(state)} max="1" />
+          <progress value={tourProgress(state, routes)} max="1" />
           <p>
             {state.phase === "done"
               ? "这段旅程已完成，收藏你的所见。"
-              : `${state.phase === "walking" ? "正在前往" : state.phase === "paused" ? "导览已暂停" : "正在讲解"} · ${artworkById(current.stops[state.step])?.title}`}
+              : `${state.phase === "walking" ? "正在前往" : state.phase === "paused" ? "导览已暂停" : "正在讲解"} · ${runtime.artworkById(current.stops[state.step])?.title ?? "（已下架）"}`}
           </p>
           <div className="tour-controls">
             {state.phase !== "done" && (
@@ -65,12 +78,15 @@ export function TourPanel({
       ) : (
         routes.map((r, i) => (
           <button
-            className={"route-card route-" + i}
+            className={"route-card route-" + (i % 2)}
             key={r.id}
             onClick={() => onStart(r.id)}
           >
             <span>
-              JOURNEY 0{i + 1} <span>约 {i ? 3 : 2} 分钟 · 3 件作品</span>
+              JOURNEY 0{i + 1}{" "}
+              <span>
+                约 {minutesOf(r.stops)} 分钟 · {r.stops.length} 件作品
+              </span>
             </span>
             <h3>
               {r.name}
@@ -83,6 +99,7 @@ export function TourPanel({
     </section>
   );
 }
+
 function ArrowUpRightIcon() {
   return <span className="round-arrow">↗</span>;
 }

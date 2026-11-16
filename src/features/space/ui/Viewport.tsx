@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { Point } from "../../../shared/types";
+import { useServices } from "../../exhibition/ServicesProvider";
 import { buildScene, disposeScene } from "../lib/buildScene";
+
 export function Viewport({
   position,
   yaw,
@@ -11,6 +13,7 @@ export function Viewport({
   yaw: React.RefObject<number>;
   onSelect: (id: string) => void;
 }) {
+  const { runtime } = useServices();
   const root = useRef<HTMLDivElement>(null);
   const select = useRef(onSelect);
   select.current = onSelect;
@@ -27,7 +30,7 @@ export function Viewport({
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     el.appendChild(renderer.domElement);
-    const { scene, frames, sculpture } = buildScene();
+    const { scene, frames, sculpture } = buildScene(runtime);
     const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 80);
     const resize = () => {
       renderer.setSize(el.clientWidth, el.clientHeight);
@@ -89,7 +92,8 @@ export function Viewport({
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [position, yaw]);
+    // runtime.revision 变化（展览切换）时整体重建场景
+  }, [position, yaw, runtime]);
   return (
     <div className="viewport" ref={root}>
       {error && <div className="webgl-error">{error}</div>}
